@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if is_update %}Edit{% else %}Add{% endif %} Destination - TravelHub{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-{% if is_update %}edit{% else %}plus{% endif %}"></i>
+                        {% if is_update %}Edit{% else %}Add New{% endif %} Destination
+                    </h3>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" enctype="multipart/form-data" id="destinationForm">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Place Name *</label>
+                                {{ form.place_name }}
+                                {% if form.place_name.errors %}
+                                <div class="text-danger small">{{ form.place_name.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Country *</label>
+                                <select class="form-select" id="countrySelect" required>
+                                    <option value="">Select Country</option>
+                                    {% for country in countries %}
+                                    <option value="{{ country.id }}">{{ country.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">State *</label>
+                                <select class="form-select" id="stateSelect" name="state" required>
+                                    <option value="">Select Country First</option>
+                                </select>
+                                {% if form.state.errors %}
+                                <div class="text-danger small">{{ form.state.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">District *</label>
+                                <select class="form-select" id="districtSelect" name="district" required>
+                                    <option value="">Select State First</option>
+                                </select>
+                                {% if form.district.errors %}
+                                <div class="text-danger small">{{ form.district.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Weather *</label>
+                                {{ form.weather }}
+                                {% if form.weather.errors %}
+                                <div class="text-danger small">{{ form.weather.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Google Maps Link *</label>
+                                {{ form.google_map_link }}
+                                {% if form.google_map_link.errors %}
+                                <div class="text-danger small">{{ form.google_map_link.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted">Example: https://maps.google.com/?q=...</small>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Description *</label>
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="text-danger small">{{ form.description.errors }}</div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold">Image</label>
+                                {{ form.image }}
+                                {% if form.image.errors %}
+                                <div class="text-danger small">{{ form.image.errors }}</div>
+                                {% endif %}
+                                <small class="text-muted d-block">Upload a beautiful image of the destination (optional)</small>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                                <i class="fas fa-save"></i> {% if is_update %}Update{% else %}Submit{% endif %}
+                            </button>
+                            <a href="{% url 'destination-list-view' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    input[type="text"], input[type="url"], textarea, select, input[type="file"] {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 0.375rem;
+        font-size: 1rem;
+    }
+    textarea {
+        min-height: 150px;
+        resize: vertical;
+    }
+    input[type="file"] {
+        padding: 0.5rem;
+    }
+</style>
+
+<script>
+document.getElementById('countrySelect').addEventListener('change', async function() {
+    const countryId = this.value;
+    const stateSelect = document.getElementById('stateSelect');
+    const districtSelect = document.getElementById('districtSelect');
+    
+    stateSelect.innerHTML = '<option value="">Loading...</option>';
+    districtSelect.innerHTML = '<option value="">Select State First</option>';
+    
+    if (countryId) {
+        try {
+            const response = await fetch(`/api/states/?country=${countryId}`);
+            const data = await response.json();
+            
+            stateSelect.innerHTML = '<option value="">Select State</option>';
+            data.results.forEach(state => {
+                stateSelect.innerHTML += `<option value="${state.id}">${state.name}</option>`;
+            });
+        } catch (error) {
+            stateSelect.innerHTML = '<option value="">Error loading states</option>';
+        }
+    } else {
+        stateSelect.innerHTML = '<option value="">Select Country First</option>';
+    }
+});
+
+document.getElementById('stateSelect').addEventListener('change', async function() {
+    const stateId = this.value;
+    const districtSelect = document.getElementById('districtSelect');
+    
+    districtSelect.innerHTML = '<option value="">Loading...</option>';
+    
+    if (stateId) {
+        try {
+            const response = await fetch(`/api/districts/?state=${stateId}`);
+            const data = await response.json();
+            
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+            data.results.forEach(district => {
+                districtSelect.innerHTML += `<option value="${district.id}">${district.name}</option>`;
+            });
+        } catch (error) {
+            districtSelect.innerHTML = '<option value="">Error loading districts</option>';
+        }
+    } else {
+        districtSelect.innerHTML = '<option value="">Select State First</option>';
+    }
+});
+
+// Pre-populate for edit mode
+{% if is_update and object %}
+    window.addEventListener('load', async function() {
+        const stateId = "{{ object.state.id }}";
+        const districtId = "{{ object.district.id }}";
+        const countryId = "{{ object.state.country.id }}";
+        
+        document.getElementById('countrySelect').value = countryId;
+        await new Promise(resolve => setTimeout(resolve, 100));
+        document.getElementById('countrySelect').dispatchEvent(new Event('change'));
+        
+        setTimeout(() => {
+            document.getElementById('stateSelect').value = stateId;
+            document.getElementById('stateSelect').dispatchEvent(new Event('change'));
+            
+            setTimeout(() => {
+                document.getElementById('districtSelect').value = districtId;
+            }, 100);
+        }, 200);
+});
+{% endif %}
+</script>
+{% endblock %}

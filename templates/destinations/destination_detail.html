@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ destination.place_name }} - TravelHub{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'destination-list-view' %}">Destinations</a></li>
+            <li class="breadcrumb-item active">{{ destination.place_name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                {% if destination.image %}
+                <img src="{{ destination.image.url }}" class="card-img-top destination-detail-img" 
+                     alt="{{ destination.place_name }}">
+                {% else %}
+                <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800" 
+                     class="card-img-top destination-detail-img" alt="{{ destination.place_name }}">
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <h1 class="card-title mb-2">{{ destination.place_name }}</h1>
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                {{ destination.district.name }}, {{ destination.state.name }}, 
+                                {{ destination.state.country.name }}
+                            </p>
+                        </div>
+                        {% if user == destination.created_by %}
+                        <div class="btn-group">
+                            <a href="{% url 'destination-update' destination.pk %}" 
+                               class="btn btn-sm btn-warning">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <a href="{% url 'destination-delete' destination.pk %}" 
+                               class="btn btn-sm btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="destination-meta mb-4">
+                        <span class="badge bg-primary me-2">
+                            <i class="fas fa-cloud-sun"></i> {{ destination.get_weather_display }}
+                        </span>
+                        <span class="badge bg-success">
+                            <i class="far fa-user"></i> By {{ destination.created_by.username }}
+                        </span>
+                    </div>
+
+                    <h4 class="mb-3">About This Destination</h4>
+                    <p class="lead">{{ destination.description }}</p>
+
+                    <hr class="my-4">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-info-circle text-primary"></i> Details</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Country:</strong></td>
+                                    <td>{{ destination.state.country.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>State:</strong></td>
+                                    <td>{{ destination.state.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>District:</strong></td>
+                                    <td>{{ destination.district.name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Weather:</strong></td>
+                                    <td>{{ destination.get_weather_display }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="far fa-calendar text-success"></i> Timeline</h5>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <td><strong>Added:</strong></td>
+                                    <td>{{ destination.created_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Updated:</strong></td>
+                                    <td>{{ destination.updated_at|date:"F d, Y" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>By:</strong></td>
+                                    <td>{{ destination.created_by.username }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-map text-danger"></i> Location
+                    </h5>
+                    <a href="{{ destination.google_map_link }}" target="_blank" 
+                       class="btn btn-primary w-100 mb-3">
+                        <i class="fas fa-map-marked-alt"></i> View on Google Maps
+                    </a>
+                    <div class="ratio ratio-1x1">
+                        <iframe src="https://maps.google.com/maps?q={{ destination.place_name }}&output=embed" 
+                                frameborder="0" style="border:0" allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="fas fa-share-alt text-info"></i> Share This
+                    </h5>
+                    <div class="d-grid gap-2">
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.build_absolute_uri }}" 
+                           target="_blank" class="btn btn-outline-primary">
+                            <i class="fab fa-facebook"></i> Share on Facebook
+                        </a>
+                        <a href="https://twitter.com/intent/tweet?url={{ request.build_absolute_uri }}&text={{ destination.place_name }}" 
+                           target="_blank" class="btn btn-outline-info">
+                            <i class="fab fa-twitter"></i> Tweet
+                        </a>
+                        <button class="btn btn-outline-secondary" onclick="copyLink()">
+                            <i class="fas fa-link"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{% url 'destination-list-view' %}" class="btn btn-lg btn-outline-primary">
+            <i class="fas fa-arrow-left"></i> Back to Destinations
+        </a>
+    </div>
+</div>
+
+<script>
+function copyLink() {
+    navigator.clipboard.writeText(window.location.href);
+    alert('Link copied to clipboard!');
+}
+</script>
+{% endblock %}
