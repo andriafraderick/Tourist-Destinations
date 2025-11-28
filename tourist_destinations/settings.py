@@ -13,7 +13,6 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 from os import path
-import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,16 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-bfwo_zq)wkp*#viwy!&s++d%b@=q(d4z0cu!lttp34#xt22c#k'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get("DEBUG", "True") == "True"
+DEBUG = False
 
 import os
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    "tourist-destinations.onrender.com",
-    ".onrender.com",
-]
+ALLOWED_HOSTS = ['*']
 
 
 
@@ -89,21 +83,12 @@ WSGI_APPLICATION = 'tourist_destinations.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-if os.environ.get("RENDER"):
-    DATABASES = {
-        'default': dj_database_url.config(conn_max_age=600)
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
-else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': 'tourist_destination',
-            'USER': 'root',
-            'PASSWORD': 'Admin@123',
-            'HOST': 'localhost',
-            'PORT': '3306',
-        }
-    }
+}
 
 
 # Password validation
@@ -174,4 +159,4 @@ LOGIN_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-os.environ["DJANGO_AUTORELOAD"] = "stat"
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
