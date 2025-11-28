@@ -1,7 +1,7 @@
 
 
 ## Project Overview
-A comprehensive Django REST Framework application for managing tourist destinations with a beautiful, modern UI inspired by TripAdvisor.
+A comprehensive Django REST Framework application for managing tourist destinations.
 
 ## Features
 - ✅ Full CRUD operations using Generic API Views
